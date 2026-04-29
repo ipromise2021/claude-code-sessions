@@ -783,6 +783,53 @@ pnpm build:web
 node packages/web/build/index.js
 ```
 
+**独立 CLI 快捷启动**（脱离项目目录运行）：
+
+```bash
+# 1. 复制构建产物到固定位置
+pnpm build:web
+mkdir -p ~/.claude/claude-sessions-web
+cp -r packages/web/build ~/.claude/claude-sessions-web/
+# 2. 安装运行时依赖（effect + marked）
+cd ~/.claude/claude-sessions-web
+echo '{"name":"claude-sessions-web-standalone","private":true,"type":"module","dependencies":{"effect":"^3.21.2","marked":"^17.0.6"}}' > package.json
+pnpm install
+
+# 3. 创建独立 wrapper 脚本 ~/.claude/claude-sessions-web.js
+# （纯 Node.js 内置模块，零外部依赖，等价于 packages/web/dist/cli.js + commander）
+# 完整源码见本仓库中的 ~/.claude/claude-sessions-web.js
+
+# 4. 配置 shell alias（添加到 ~/.zshrc 或 ~/.bashrc）
+cat >> ~/.zshrc << 'ALIAS'
+
+# Claude Code Sessions Web GUI
+SESSIONS_WEB_SCRIPT="$HOME/.claude/claude-sessions-web.js"
+SESSIONS_WEB_PORT=5173
+alias sessions-gui='nohup node "$SESSIONS_WEB_SCRIPT" --port "$SESSIONS_WEB_PORT" > /tmp/sessions-gui.log 2>&1 & echo "Sessions GUI started on http://localhost:$SESSIONS_WEB_PORT (PID: $!)" && open "http://localhost:$SESSIONS_WEB_PORT"'
+alias sessions-gui-stop='curl -s -X POST "http://localhost:$SESSIONS_WEB_PORT/api/shutdown" && echo "" || echo "Shutdown failed, maybe not running?"'
+ALIAS
+
+# 5. 重新加载 shell 配置
+source ~/.zshrc
+```
+
+启动和关闭：
+
+```bash
+sessions-gui        # 后台启动 + 自动打开浏览器
+sessions-gui-stop   # 关闭服务
+```
+
+服务器日志输出到 `/tmp/sessions-gui.log`。
+
+**修改代码后的更新流程**：
+
+```bash
+pnpm build:web
+cp -r packages/web/build ~/.claude/claude-sessions-web/
+# 无需重启终端，下次 sessions-gui 启动时自动使用新版本
+```
+
 #### VSCode 扩展（本地安装）
 
 ```bash
