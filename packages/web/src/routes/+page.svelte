@@ -661,7 +661,7 @@
   })
 </script>
 
-<div class="grid grid-cols-[350px_1fr] gap-4 h-[calc(100vh-120px)]">
+<div class="grid grid-cols-[380px_1fr] gap-4 h-[calc(100vh-120px)]">
   <ProjectTree
     {projects}
     {projectSessions}

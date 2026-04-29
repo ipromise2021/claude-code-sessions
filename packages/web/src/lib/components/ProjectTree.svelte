@@ -14,7 +14,7 @@
     type TitleDisplayMode,
   } from '@claude-sessions/core'
   import { appConfig } from '$lib/stores/config'
-  import TooltipButton from './TooltipButton.svelte'
+  import DropdownMenu from './DropdownMenu.svelte'
   import FloatingTooltip from './FloatingTooltip.svelte'
   import CommandTitle from './CommandTitle.svelte'
 
@@ -207,14 +207,61 @@
   }
 </script>
 
+{#snippet resumeIcon()}
+  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"
+    />
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+    />
+  </svg>
+{/snippet}
+{#snippet renameIcon()}
+  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+    />
+  </svg>
+{/snippet}
+{#snippet compressIcon()}
+  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="1.5"
+      d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z"
+    />
+  </svg>
+{/snippet}
+{#snippet deleteIcon()}
+  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-width="2"
+      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+    />
+  </svg>
+{/snippet}
+
 <aside class="bg-gh-bg-secondary border border-gh-border rounded-lg overflow-hidden flex flex-col">
   <div class="p-4 border-b border-gh-border bg-gh-bg">
     <h2 class="text-base font-semibold mb-2">
       Projects ({sortedProjects.length})
     </h2>
     <!-- Sort Options -->
-    <div class="flex items-center gap-2 text-sm">
-      <span class="text-gh-text-secondary">Sort:</span>
+    <div class="flex items-center gap-2 text-sm flex-nowrap">
+      <span class="text-gh-text-secondary mr-1">Session Sort:</span>
       <select
         class="bg-gh-bg-secondary border border-gh-border rounded px-2 py-1 text-sm text-gh-text cursor-pointer hover:border-gh-accent focus:border-gh-accent focus:outline-none"
         value={sortField}
@@ -295,6 +342,53 @@
                 {@const isSummaryFallback = !data?.customTitle && !data?.currentSummary}
                 {@const isExpanded = expandedSessions.has(session.id)}
                 {@const hasSubItems = hasSessionSubItems(session)}
+                {@const items = [
+                  ...(onResumeSession
+                    ? [
+                        {
+                          label: 'Resume',
+                          icon: resumeIcon,
+                          onClick: () => {
+                            const ev = new MouseEvent('click')
+                            ev.stopPropagation = () => {}
+                            onResumeSession(ev, session)
+                          },
+                        },
+                      ]
+                    : []),
+                  {
+                    label: 'Rename',
+                    icon: renameIcon,
+                    onClick: () => {
+                      const ev = new MouseEvent('click')
+                      ev.stopPropagation = () => {}
+                      onRenameSession(ev, session)
+                    },
+                  },
+                  ...(onCompressSession
+                    ? [
+                        {
+                          label: 'Compress',
+                          icon: compressIcon,
+                          onClick: () => {
+                            const ev = new MouseEvent('click')
+                            ev.stopPropagation = () => {}
+                            onCompressSession(ev, session)
+                          },
+                        },
+                      ]
+                    : []),
+                  {
+                    label: 'Delete',
+                    icon: deleteIcon,
+                    onClick: () => {
+                      const ev = new MouseEvent('click')
+                      ev.stopPropagation = () => {}
+                      onDeleteSession(ev, session)
+                    },
+                    variant: 'danger' as const,
+                  },
+                ]}
                 <li
                   class="relative border-t border-gh-border-subtle group {isSelected
                     ? 'bg-gh-accent/20 border-l-3 border-l-gh-accent'
@@ -355,43 +449,19 @@
                       </button>
                     </FloatingTooltip>
 
-                    <!-- Action buttons (visible on hover, absolute positioned) -->
-                    <div
-                      class="absolute right-0 top-0 h-full flex items-center gap-0.5 pr-2 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity bg-gh-bg"
-                    >
-                      {#if onResumeSession}
-                        <TooltipButton
-                          class="p-1 rounded hover:bg-gh-green/20 text-xs"
-                          onclick={(e) => onResumeSession(e, session)}
-                          title="Resume session"
+                    <!-- Action dropdown (always visible trigger) -->
+                    <div class="flex items-center pr-1">
+                      <DropdownMenu {items} ariaLabel="Session actions">
+                        <svg
+                          class="w-4 h-4 text-gh-text-secondary hover:text-gh-text transition-colors"
+                          fill="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          ▶️
-                        </TooltipButton>
-                      {/if}
-                      <TooltipButton
-                        class="p-1 rounded hover:bg-gh-border text-xs"
-                        onclick={(e) => onRenameSession(e, session)}
-                        title="Rename"
-                      >
-                        ✏️
-                      </TooltipButton>
-                      {#if onCompressSession}
-                        <TooltipButton
-                          aria-label="Compress session"
-                          class="p-1 rounded hover:bg-gh-accent/20 text-xs"
-                          onclick={(e) => onCompressSession(e, session)}
-                          title="Compress session"
-                        >
-                          🗜️
-                        </TooltipButton>
-                      {/if}
-                      <TooltipButton
-                        class="p-1 rounded hover:bg-gh-red/20 text-xs"
-                        onclick={(e) => onDeleteSession(e, session)}
-                        title="Delete"
-                      >
-                        🗑️
-                      </TooltipButton>
+                          <path
+                            d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+                          />
+                        </svg>
+                      </DropdownMenu>
                     </div>
                   </div>
 
