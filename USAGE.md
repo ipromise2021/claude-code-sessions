@@ -16,6 +16,7 @@
 - [方式三：VSCode 扩展](#方式三vscode-扩展)
 - [常见工作流](#常见工作流)
 - [FAQ](#faq)
+- [本地开发与构建](#本地开发与构建)
 
 ---
 
@@ -30,8 +31,8 @@
 ```bash
 ls ~/.claude/projects/
 # 示例输出：
-# -Users-yy0812024-prv-dev-myproject
-# -Users-yy0812024-work-otherproject
+# -Users-yourname-prv-dev-myproject
+# -Users-yourname-work-otherproject
 ```
 
 每个目录对应一个 Claude Code 使用过的项目。
@@ -45,14 +46,14 @@ ls ~/.claude/projects/
 ```
 ~/.claude/
 ├── projects/                          # 会话目录
-│   └── -Users-yy0812024-prv-dev-myproject/   # 项目文件夹（路径中非字母数字字符替换为 -）
+│   └── -Users-yourname-prv-dev-myproject/   # 项目文件夹（路径中非字母数字字符替换为 -）
 │       ├── abc12345-1234-1234-1234-123456789abc.jsonl    # 主会话文件
 │       ├── def67890-1234-1234-1234-123456789def.jsonl    # 另一个会话
 │       ├── agent-xxx11111-1111-1111-1111-111111111xxx.jsonl  # 子 agent 会话
 │       ├── .tree-cache.json           # 缓存文件（性能优化）
 │       ├── sessions-index.json        # 官方扩展索引文件
 │       └── .bak/                      # 备份目录（删除的会话移到这里）
-│           └── -Users-yy0812024-prv-dev-myproject_abc12345-....jsonl
+│           └── -Users-yourname-prv-dev-myproject_abc12345-....jsonl
 ├── todos/                             # Todo 记录
 │   └── abc12345-....json              # 按会话 ID 存储的 todo
 └── file-history/                      # 文件历史快照
@@ -63,7 +64,7 @@ ls ~/.claude/projects/
 **关键概念**：
 
 - **sessionId**：会话的唯一标识，即 JSONL 文件名去掉 `.jsonl` 后缀（UUID 格式）
-- **projectName**：项目文件夹名，由工作目录路径转换而来（如 `/Users/me/work` → `-Users-me-work`）
+- **projectName**：项目文件夹名，由工作目录路径转换而来（如 `/Users/yourname/work` → `-Users-yourname-work`）
 - **删除 = 软删除**：`delete_session` 把文件移到 `.bak/` 目录，可以通过 `restoreSession` 恢复
 - **跨会话引用**：`summary` 类型的消息通过 `leafUuid` 引用其他会话的消息
 
@@ -112,15 +113,15 @@ claude mcp add claude-sessions-beta -- npx claude-sessions-mcp@beta
 Claude 会调用 list_projects，返回：
 [
   {
-    "name": "-Users-me-work-myapp",
-    "displayName": "/Users/me/work/myapp",
+    "name": "-Users-yourname-work-myapp",
+    "displayName": "/Users/yourname/work/myapp",
     "path": "~/work/myapp",
     "sessionCount": 14,
     "lastModified": 1712345678000
   },
   {
-    "name": "-Users-me-prv-lib",
-    "displayName": "/Users/me/prv/lib",
+    "name": "-Users-yourname-prv-lib",
+    "displayName": "/Users/yourname/prv/lib",
     "path": "~/prv/lib",
     "sessionCount": 3,
     "lastModified": 1712300000000
@@ -143,7 +144,7 @@ Claude 调用 list_sessions，返回：
 [
   {
     "id": "abc12345-1234-1234-1234-123456789abc",
-    "projectName": "-Users-me-work-myapp",
+    "projectName": "-Users-yourname-work-myapp",
     "title": "帮我实现用户登录功能",
     "agentName": "Login Feature",
     "customTitle": "用户登录模块开发",
@@ -193,7 +194,7 @@ Claude 调用 rename_session → { "success": true }
 
 Claude 调用 delete_session → {
   "success": true,
-  "backupPath": "/Users/me/.claude/projects/.bak/-Users-me-work-myapp_abc12345-....jsonl",
+  "backupPath": "/Users/yourname/.claude/projects/.bak/-Users-yourname-work-myapp_abc12345-....jsonl",
   "deletedAgents": 2,
   "deletedTodos": 3
 }
@@ -244,7 +245,7 @@ Claude 调用 split_session → {
 
 Claude 调用 preview_cleanup → [
   {
-    "project": "-Users-me-work-myapp",
+    "project": "-Users-yourname-work-myapp",
     "emptySessions": [
       { "id": "empty-session-1", "title": "", "messageCount": 0 }
     ],
@@ -455,7 +456,7 @@ npx @claude-sessions/web --editor cursor
 npx @claude-sessions/web --home /custom/home
 
 # 指定当前项目（影响排序优先级）
-npx @claude-sessions/web --project -Users-me-work-myapp
+npx @claude-sessions/web --project -Users-yourname-work-myapp
 ```
 
 启动后访问 `http://localhost:5173`。
@@ -701,3 +702,113 @@ VSCode 扩展的 Resume Session 功能在 Windows 上通过 `cmd.exe` 启动终�
 所有操作都是纯本地的，不联网。会话文件只读/写入 `~/.claude/` 目录。删除操作是软删除（移到 `.bak`）。
 
 如果使用 Web UI，服务仅监听 localhost，外部无法访问（除非你主动暴露端口）。
+
+---
+
+## 本地开发与构建
+
+如果你需要修改源码并在本地使用，可以不发布到 npm，直接从本地构建产物运行。
+
+### 前置条件
+
+```bash
+# 安装依赖
+corepack enable
+pnpm install
+```
+
+### 构建
+
+```bash
+# 构建所有包
+pnpm build
+
+# 或单独构建
+pnpm build:core      # 核心库
+pnpm build:mcp       # MCP Server
+pnpm build:web       # Web UI
+```
+
+构建产物在各自 `dist/` 目录下。
+
+### 本地使用示例
+
+#### MCP Server（本地安装）
+
+```bash
+# 1. 构建
+pnpm build:core
+pnpm build:mcp
+
+# 2. 复制到固定位置（推荐 ~/.claude/）
+cp packages/mcp/dist/index.js ~/.claude/claude-sessions-local.js
+chmod +x ~/.claude/claude-sessions-local.js
+
+# 3. 注册为全局 MCP Server
+claude mcp add claude-sessions-local -- node ~/.claude/claude-sessions-local.js
+```
+
+或者手动编辑 `~/.claude.json`，在顶层添加：
+
+```json
+{
+  "mcpServers": {
+    "claude-sessions-local": {
+      "command": "node",
+      "args": ["/Users/yourname/.claude/claude-sessions-local.js"]
+    }
+  }
+}
+```
+
+重启 Claude Code 后生效。之后在对话中就可以直接使用 `list_projects`、`rename_session` 等工具。
+
+**修改代码后的更新流程**：
+
+```bash
+pnpm build:mcp
+cp packages/mcp/dist/index.js ~/.claude/claude-sessions-local.js
+# 重启 Claude Code
+```
+
+#### Web UI（本地启动）
+
+```bash
+# 开发模式（热更新）
+pnpm dev
+# 浏览器访问 http://localhost:5173
+
+# 生产模式
+pnpm build:web
+node packages/web/build/index.js
+```
+
+#### VSCode 扩展（本地安装）
+
+```bash
+cd packages/vscode-extension
+pnpm build
+pnpm package
+code --install-extension claude-sessions-*.vsix
+```
+
+### 快捷更新脚本
+
+创建一个脚本 `~/bin/update-claude-sessions.sh`：
+
+```bash
+#!/bin/bash
+set -e
+cd ~/prv-dev/vibecoding/claude-code-sessions
+git pull
+pnpm install --frozen-lockfile
+pnpm build:mcp
+cp packages/mcp/dist/index.js ~/.claude/claude-sessions-local.js
+echo "Done. Restart Claude Code to apply."
+```
+
+```bash
+chmod +x ~/bin/update-claude-sessions.sh
+```
+
+每次从远端拉取更新后执行一次即可。
