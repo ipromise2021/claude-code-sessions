@@ -390,6 +390,9 @@
   // Scroll container reference for navigation (internal or external)
   let internalScrollContainer: HTMLDivElement | undefined = $state()
   const scrollContainer = $derived(externalScrollContainer ?? internalScrollContainer)
+
+  // Current navigated message ID (highlighted)
+  let currentMsgId = $state<string | null>(null)
 </script>
 
 <section
@@ -448,7 +451,11 @@
         <SessionActions {onResumeSession} {onCompressSession} {onRenameSession} {onDeleteSession} />
       {/if}
       {#if activeTab !== 'todos'}
-        <ScrollButtons {messages} {scrollContainer} />
+        <ScrollButtons
+          messages={activeTab === 'messages' ? filteredMessages : filteredAgentMessages}
+          {scrollContainer}
+          onVisibleIndexChange={(id) => (currentMsgId = id)}
+        />
       {/if}
     </div>
   </div>
@@ -528,6 +535,7 @@
           {onSplitSession}
           enableScroll={false}
           fullWidth={true}
+          {currentMsgId}
         />
       {/if}
     {:else if activeTab === 'todos'}
@@ -572,6 +580,7 @@
           onDeleteMessage={handleAgentMessageDelete}
           enableScroll={false}
           fullWidth={true}
+          {currentMsgId}
         />
       {/if}
     {/if}

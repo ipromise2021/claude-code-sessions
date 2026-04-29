@@ -10,6 +10,7 @@
     onSplitSession?: (msg: Message) => void
     enableScroll?: boolean
     fullWidth?: boolean
+    currentMsgId?: string | null
   }
 
   let {
@@ -20,6 +21,7 @@
     onSplitSession,
     enableScroll = true,
     fullWidth = false,
+    currentMsgId = null,
   }: Props = $props()
 
   // Find index of first meaningful message (user/assistant, not metadata)
@@ -42,6 +44,7 @@
         onDelete={onDeleteMessage}
         {onEditTitle}
         onSplit={onSplitSession}
+        isActive={currentMsgId !== null && (msg.uuid ?? `idx-${i}`) === currentMsgId}
       />
     {/each}
   </div>

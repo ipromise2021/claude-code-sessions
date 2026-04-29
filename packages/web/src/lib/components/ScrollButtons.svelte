@@ -44,9 +44,10 @@
     messages: Message[]
     scrollContainer: HTMLElement | null | undefined
     class?: string
+    onVisibleIndexChange?: (msgId: string | null) => void
   }
 
-  let { messages, scrollContainer, class: className = '' }: Props = $props()
+  let { messages, scrollContainer, class: className = '', onVisibleIndexChange }: Props = $props()
 
   // Navigation mode state with localStorage persistence
   const normalizeStoredMode = (mode: NavMode | null): NavMode => {
@@ -249,18 +250,23 @@
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' })
       _currentVisibleIndex = index
+      onVisibleIndexChange?.(msgId)
     }
   }
 
   const scrollToTop = () => {
     scrollContainer?.scrollTo({ top: 0, behavior: 'smooth' })
     _currentVisibleIndex = 0
+    const msgId = messages[0]?.uuid ?? 'idx-0'
+    onVisibleIndexChange?.(msgId)
   }
 
   const scrollToBottom = () => {
     if (!scrollContainer) return
     scrollContainer.scrollTo({ top: scrollContainer.scrollHeight + 10000, behavior: 'smooth' })
     _currentVisibleIndex = messages.length - 1
+    const msgId = messages[messages.length - 1]?.uuid ?? `idx-${messages.length - 1}`
+    onVisibleIndexChange?.(msgId)
   }
 
   // Navigate to previous message matching current mode

@@ -20,12 +20,21 @@
     msg: Message
     sessionId: string
     isFirst?: boolean
+    isActive?: boolean
     onDelete: (msg: Message) => void
     onEditTitle?: (msg: Message) => void
     onSplit?: (msg: Message) => void
   }
 
-  let { msg, sessionId, isFirst = false, onDelete, onEditTitle, onSplit }: Props = $props()
+  let {
+    msg,
+    sessionId,
+    isFirst = false,
+    isActive = false,
+    onDelete,
+    onEditTitle,
+    onSplit,
+  }: Props = $props()
 
   // Data attribute for scroll targeting
   const msgId = $derived(msg.uuid ?? '')
@@ -199,7 +208,12 @@
   <!-- Queue operations are internal system messages, don't render -->
 {:else if progressData}
   <!-- Progress message (hook_progress etc.) -->
-  <div data-msg-id={msgId} class="p-2 rounded-lg bg-gh-border-subtle/30 group relative">
+  <div
+    data-msg-id={msgId}
+    class="p-2 rounded-lg bg-gh-border-subtle/30 group relative{isActive
+      ? ' ring-2 ring-orange-400'
+      : ''}"
+  >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary/60">
       <span>
         🔄 {progressData.hookName ?? progressData.type}
@@ -212,7 +226,12 @@
   </div>
 {:else if turnDurationData}
   <!-- Turn duration message -->
-  <div data-msg-id={msgId} class="p-2 rounded-lg bg-gh-border-subtle/50 group relative">
+  <div
+    data-msg-id={msgId}
+    class="p-2 rounded-lg bg-gh-border-subtle/50 group relative{isActive
+      ? ' ring-2 ring-orange-400'
+      : ''}"
+  >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary">
       <span class="text-gh-text-secondary/70">
         ⏱️ {turnDurationData.durationFormatted}
@@ -227,7 +246,9 @@
   <!-- Stop hook summary message -->
   <div
     data-msg-id={msgId}
-    class="p-3 rounded-lg bg-emerald-500/10 border-l-3 border-l-emerald-500 group relative"
+    class="p-3 rounded-lg bg-emerald-500/10 border-l-3 border-l-emerald-500 group relative{isActive
+      ? ' ring-2 ring-orange-400'
+      : ''}"
   >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary">
       <span class="font-semibold text-emerald-400">
@@ -258,7 +279,9 @@
   <!-- File history snapshot -->
   <div
     data-msg-id={msgId}
-    class="p-4 rounded-lg bg-amber-500/10 border-l-3 border-l-amber-500 group relative"
+    class="p-4 rounded-lg bg-amber-500/10 border-l-3 border-l-amber-500 group relative{isActive
+      ? ' ring-2 ring-orange-400'
+      : ''}"
     title="messageId: {messageId}"
   >
     <div class="flex justify-between mb-2 text-xs text-gh-text-secondary">
@@ -294,7 +317,9 @@
   <!-- Slash command message (user input like /vsix) -->
   <div
     data-msg-id={msgId}
-    class="p-3 rounded-lg bg-gh-accent/15 border-l-3 border-l-gh-accent group relative"
+    class="p-3 rounded-lg bg-gh-accent/15 border-l-3 border-l-gh-accent group relative{isActive
+      ? ' ring-2 ring-orange-400'
+      : ''}"
   >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary">
       <span>
@@ -314,7 +339,9 @@
   <!-- Local command message -->
   <div
     data-msg-id={msgId}
-    class="p-3 rounded-lg bg-cyan-500/10 border-l-3 border-l-cyan-500 group relative"
+    class="p-3 rounded-lg bg-cyan-500/10 border-l-3 border-l-cyan-500 group relative{isActive
+      ? ' ring-2 ring-orange-400'
+      : ''}"
   >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary">
       <span class="font-semibold text-cyan-400">⚡ {commandData.name || 'Command'}</span>
@@ -332,7 +359,9 @@
   <!-- Tool use message -->
   <div
     data-msg-id={msgId}
-    class="p-3 rounded-lg bg-violet-500/10 border-l-3 border-l-violet-500 group relative"
+    class="p-3 rounded-lg bg-violet-500/10 border-l-3 border-l-violet-500 group relative{isActive
+      ? ' ring-2 ring-orange-400'
+      : ''}"
   >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary">
       <span class="font-semibold text-violet-400">🔧 {toolUseData.name}</span>
@@ -397,7 +426,7 @@
     data-msg-id={msgId}
     class="p-4 rounded-lg group relative {messageClass} flex flex-col {hasAnyContent
       ? 'gap-2'
-      : ''}"
+      : ''}{isActive ? ' ring-2 ring-orange-400' : ''}"
   >
     <div class="flex justify-between text-xs text-gh-text-secondary">
       <span class="uppercase font-semibold">{isToolResult ? 'OUT' : msg.type}</span>
