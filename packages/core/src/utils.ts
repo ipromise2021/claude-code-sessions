@@ -18,6 +18,20 @@ import { validateMessage } from './schemas/message.js'
 
 const logger = createLogger('utils')
 
+// SessionId must not contain path traversal characters.
+// Claude Code uses UUIDs (e.g. "a1b2c3d4-...") and agent-UUIDs ("agent-a1b2c3d4-...").
+const SESSION_ID_RE = /^[A-Za-z0-9_-]+$/
+
+/** Validate sessionId is safe for use in file paths. Throws on path traversal attempts. */
+export const validateSessionId = (sessionId: string): void => {
+  if (!sessionId || !SESSION_ID_RE.test(sessionId)) {
+    throw new Error(`Invalid sessionId: contains unsafe characters`)
+  }
+}
+
+/** Check if sessionId is valid without throwing. */
+export const isValidSessionId = (sessionId: string): boolean => SESSION_ID_RE.test(sessionId)
+
 export class FileReadError extends Data.TaggedError('FileReadError')<{
   readonly filePath: string
   readonly cause: unknown

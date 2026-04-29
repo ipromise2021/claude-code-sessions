@@ -84,6 +84,8 @@ export {
   canMoveSession,
   fileExists,
   groupSessionsByDate,
+  validateSessionId,
+  isValidSessionId,
   type DateGroupKey,
   type DateGroup,
 } from './utils.js'

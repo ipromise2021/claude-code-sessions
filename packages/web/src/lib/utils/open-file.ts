@@ -1,10 +1,7 @@
 /**
  * Open file utility - configurable editor command
  */
-import { exec } from 'child_process'
-import { promisify } from 'util'
-
-const execAsync = promisify(exec)
+import { spawn } from 'child_process'
 
 export interface OpenFileOptions {
   editorCommand: string
@@ -51,10 +48,22 @@ export function expandHomePath(filePath: string, homeDir: string): string {
 }
 
 /**
- * Open a file with the configured editor
+ * Open a file with the configured editor.
+ * Uses spawn with array args to avoid shell injection.
  */
 export async function openFile(filePath: string): Promise<void> {
   const { editorCommand, homeDir } = currentOptions
   const expandedPath = expandHomePath(filePath, homeDir)
-  await execAsync(`${editorCommand} "${expandedPath}"`)
+
+  return new Promise((resolveSpawn, reject) => {
+    const child = spawn(editorCommand, [expandedPath], {
+      stdio: 'ignore',
+      detached: true,
+    })
+    child.on('error', reject)
+    child.on('spawn', () => {
+      child.unref()
+      resolveSpawn()
+    })
+  })
 }

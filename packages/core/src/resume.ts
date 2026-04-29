@@ -9,6 +9,11 @@ import type {
   ResumeSessionResult,
   StartClaudeOptions,
 } from './types.js'
+import { validateSessionId } from './utils.js'
+
+/** Escape shell metacharacters for safe embedding in AppleScript do-script strings */
+const escapeAppleScriptShell = (s: string): string =>
+  s.replace(/\\/g, '\\\\').replace(/"/g, '\\"').replace(/\$/g, '\\$').replace(/`/g, '\\`')
 
 /**
  * Start claude CLI in an external terminal window.
@@ -20,8 +25,8 @@ export const startClaude = (options: StartClaudeOptions): ResumeSessionResult =>
 
   try {
     if (process.platform === 'darwin') {
-      const escapedDir = workingDir.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
-      const escapedCmd = command.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+      const escapedDir = escapeAppleScriptShell(workingDir)
+      const escapedCmd = escapeAppleScriptShell(command)
       const script = `
 tell application "Terminal"
   activate
@@ -92,6 +97,8 @@ end tell
 export const resumeSession = (options: ResumeSessionOptions): ResumeSessionResult => {
   const { sessionId, cwd, fork = false, args = [] } = options
 
+  validateSessionId(sessionId)
+
   const claudeArgs = ['--resume', sessionId]
   if (fork) {
     claudeArgs.push('--fork-session')
@@ -113,7 +120,7 @@ export const openExternalTerminal = (options: OpenExternalTerminalOptions): Resu
 
   try {
     if (process.platform === 'darwin') {
-      const escapedDir = cwd.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+      const escapedDir = escapeAppleScriptShell(cwd)
       const script = `
 tell application "Terminal"
   activate

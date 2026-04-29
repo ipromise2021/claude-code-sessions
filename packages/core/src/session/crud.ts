@@ -13,6 +13,7 @@ import {
   cleanupSplitFirstMessage,
   parseJsonlLines,
   readJsonlFile,
+  validateSessionId,
 } from '../utils.js'
 import { validateChain, autoRepairChain } from './validation.js'
 import { findLinkedAgents } from '../agents.js'
@@ -28,6 +29,7 @@ import type {
 // Update summary message in session
 export const updateSessionSummary = (projectName: string, sessionId: string, newSummary: string) =>
   Effect.gen(function* () {
+    safeSessionId(sessionId)
     const filePath = path.join(getSessionsDir(), projectName, `${sessionId}.jsonl`)
     const messages = yield* readJsonlFile<Record<string, unknown>>(filePath, { strict: true })
 
@@ -58,6 +60,8 @@ import { createLogger } from '../logger.js'
 import { filterSessionFiles, buildSessionMeta, sortSessionsByDate } from './crud-helpers.js'
 
 const log = createLogger('crud')
+
+const safeSessionId = (sessionId: string) => validateSessionId(sessionId)
 
 /** Read full session file and extract metadata */
 const readSessionMeta = (projectPath: string, file: string, projectName: string) =>
@@ -127,6 +131,7 @@ export const listSessions = (projectName: string) =>
 // Read session messages
 export const readSession = (projectName: string, sessionId: string) =>
   Effect.gen(function* () {
+    safeSessionId(sessionId)
     const filePath = path.join(getSessionsDir(), projectName, `${sessionId}.jsonl`)
     return yield* readJsonlFile<Message>(filePath)
   })
@@ -142,6 +147,7 @@ export const deleteMessage = (
   targetType?: 'file-history-snapshot' | 'summary'
 ) =>
   Effect.gen(function* () {
+    safeSessionId(sessionId)
     const filePath = path.join(getSessionsDir(), projectName, `${sessionId}.jsonl`)
     const messages = yield* readJsonlFile<Record<string, unknown>>(filePath, { strict: true })
 
@@ -166,6 +172,7 @@ export const restoreMessage = (
   index: number
 ) =>
   Effect.gen(function* () {
+    safeSessionId(sessionId)
     const filePath = path.join(getSessionsDir(), projectName, `${sessionId}.jsonl`)
     const messages = yield* readJsonlFile<Record<string, unknown>>(filePath, { strict: true })
 
@@ -199,6 +206,7 @@ export const restoreMessage = (
 // Delete a session and its linked agent/todo files
 export const deleteSession = (projectName: string, sessionId: string) =>
   Effect.gen(function* () {
+    safeSessionId(sessionId)
     const sessionsDir = getSessionsDir()
     const projectPath = path.join(sessionsDir, projectName)
     const filePath = path.join(projectPath, `${sessionId}.jsonl`)
@@ -255,6 +263,7 @@ export const deleteSession = (projectName: string, sessionId: string) =>
 // summary is stored in OTHER session files (where leafUuid points to this session's messages)
 export const renameSession = (projectName: string, sessionId: string, newTitle: string) =>
   Effect.gen(function* () {
+    safeSessionId(sessionId)
     const projectPath = path.join(getSessionsDir(), projectName)
     const filePath = path.join(projectPath, `${sessionId}.jsonl`)
     const content = yield* Effect.tryPromise(() => fs.readFile(filePath, 'utf-8'))
@@ -290,6 +299,7 @@ export const moveSession = (
   targetProject: string
 ): Effect.Effect<MoveSessionResult, Error> =>
   Effect.gen(function* () {
+    safeSessionId(sessionId)
     const sessionsDir = getSessionsDir()
     const sourcePath = path.join(sessionsDir, sourceProject)
     const targetPath = path.join(sessionsDir, targetProject)
@@ -340,6 +350,7 @@ export const moveSession = (
 // New session gets a new ID and contains messages BEFORE splitAtMessageUuid (older messages)
 export const splitSession = (projectName: string, sessionId: string, splitAtMessageUuid: string) =>
   Effect.gen(function* () {
+    safeSessionId(sessionId)
     const projectPath = path.join(getSessionsDir(), projectName)
     const filePath = path.join(projectPath, `${sessionId}.jsonl`)
 
@@ -456,6 +467,7 @@ export const splitSession = (projectName: string, sessionId: string, splitAtMess
 // Repair broken parentUuid chain in a session
 export const repairChain = (projectName: string, sessionId: string) =>
   Effect.gen(function* () {
+    safeSessionId(sessionId)
     const filePath = path.join(getSessionsDir(), projectName, `${sessionId}.jsonl`)
     const messages = yield* readJsonlFile<Message>(filePath, { strict: true })
 

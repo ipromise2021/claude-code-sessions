@@ -13,6 +13,7 @@ import {
   autoRepairChain,
   validateChain,
   getLogger,
+  validateSessionId,
   type Message,
 } from '@claude-sessions/core'
 
@@ -22,6 +23,7 @@ export const deleteTitleMessages = (
   type: 'custom-title' | 'agent-name'
 ) =>
   Effect.gen(function* () {
+    validateSessionId(sessionId)
     const filePath = path.join(getSessionsDir(), projectName, `${sessionId}.jsonl`)
     const content = yield* Effect.tryPromise(() => fs.readFile(filePath, 'utf-8'))
     const lines = content.trim().split('\n').filter(Boolean)
@@ -43,6 +45,7 @@ export const deleteTitleMessageByIndex = (
   lineIndex: number
 ) =>
   Effect.gen(function* () {
+    validateSessionId(sessionId)
     const filePath = path.join(getSessionsDir(), projectName, `${sessionId}.jsonl`)
     const content = yield* Effect.tryPromise(() => fs.readFile(filePath, 'utf-8'))
     const lines = content.trim().split('\n').filter(Boolean)
@@ -73,6 +76,7 @@ export const updateTitleMessageByIndex = (
   newTitle: string
 ) =>
   Effect.gen(function* () {
+    validateSessionId(sessionId)
     const filePath = path.join(getSessionsDir(), projectName, `${sessionId}.jsonl`)
     const content = yield* Effect.tryPromise(() => fs.readFile(filePath, 'utf-8'))
     const lines = content.trim().split('\n').filter(Boolean)
@@ -98,6 +102,7 @@ export const updateTitleMessageByIndex = (
 
 export const updateAllTitleMessages = (projectName: string, sessionId: string, newTitle: string) =>
   Effect.gen(function* () {
+    validateSessionId(sessionId)
     const filePath = path.join(getSessionsDir(), projectName, `${sessionId}.jsonl`)
     const content = yield* Effect.tryPromise(() => fs.readFile(filePath, 'utf-8'))
     const lines = content.trim().split('\n').filter(Boolean)
@@ -125,6 +130,7 @@ export const updateAllTitleMessages = (projectName: string, sessionId: string, n
 
 export const addCustomTitle = (projectName: string, sessionId: string, title: string) =>
   Effect.gen(function* () {
+    validateSessionId(sessionId)
     const filePath = path.join(getSessionsDir(), projectName, `${sessionId}.jsonl`)
     const content = yield* Effect.tryPromise(() => fs.readFile(filePath, 'utf-8'))
     const record = JSON.stringify({ type: 'custom-title', customTitle: title, sessionId })
@@ -139,6 +145,7 @@ export const addCustomTitle = (projectName: string, sessionId: string, title: st
  */
 export const repairChain = (projectName: string, sessionId: string) =>
   Effect.gen(function* () {
+    validateSessionId(sessionId)
     const logger = getLogger()
     const filePath = path.join(getSessionsDir(), projectName, `${sessionId}.jsonl`)
     const content = yield* Effect.tryPromise(() => fs.readFile(filePath, 'utf-8'))
