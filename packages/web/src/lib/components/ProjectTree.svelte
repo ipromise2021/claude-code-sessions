@@ -111,9 +111,8 @@
     }
 
     // Normal click without modifiers
-    if (bulkSelectedSessions.size > 0) {
-      bulkSelectedSessions = new Map()
-    }
+    // We intentionally do NOT clear bulkSelectedSessions here
+    // so the user can navigate between sessions while keeping their selection active.
     lastClickedSession = { id: session.id, projectName: session.projectName }
     onSelectSession(session)
   }
