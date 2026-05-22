@@ -428,19 +428,26 @@
                 <li
                   class="relative border-t border-gh-border-subtle group {isSelected
                     ? 'bg-gh-accent/20 border-l-3 border-l-gh-accent'
-                    : ''} {isDragging ? 'opacity-50' : ''}"
+                    : ''} {bulkSelectedSessions.has(session.id) ? 'bg-red-500/10' : ''} {isDragging
+                    ? 'opacity-50'
+                    : ''}"
                   draggable="true"
                   ondragstart={(e) => handleDragStart(e, session)}
                   ondragend={handleDragEnd}
                 >
                   <!-- Session Row -->
                   <div class="flex items-center">
-                    <input
-                      type="checkbox"
-                      class="ml-3 mr-1 mt-0.5 flex-shrink-0 rounded border-gh-border bg-gh-bg cursor-pointer z-10 relative"
-                      checked={bulkSelectedSessions.has(session.id)}
-                      onchange={(e) => toggleBulkSelection(session, e.currentTarget.checked)}
-                    />
+                    <label
+                      class="flex items-center justify-center cursor-pointer w-8 h-8 ml-1 z-10 relative"
+                      aria-label="Select session for bulk deletion"
+                    >
+                      <input
+                        type="checkbox"
+                        class="rounded border-gh-border bg-gh-bg cursor-pointer"
+                        checked={bulkSelectedSessions.has(session.id)}
+                        onchange={(e) => toggleBulkSelection(session, e.currentTarget.checked)}
+                      />
+                    </label>
                     {#if hasSubItems}
                       <button
                         class="flex-shrink-0 w-5 h-8 flex items-center justify-center bg-transparent border-none cursor-pointer text-gh-text-secondary text-xs z-10 relative"
