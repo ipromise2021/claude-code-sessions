@@ -330,11 +330,11 @@
       </h2>
       {#if bulkSelectedSessions.size > 0}
         <div class="flex items-center gap-1 bg-gh-border-subtle/30 px-2 py-1 rounded-md">
-          <span class="text-xs text-gh-text-secondary mr-1"
+          <span class="text-xs font-bold text-gh-red mr-1"
             >{bulkSelectedSessions.size} selected</span
           >
           <button
-            class="p-1 text-xs text-gh-text-secondary hover:text-gh-text hover:bg-gh-border-subtle rounded transition-colors flex items-center justify-center"
+            class="p-1 text-xs text-gh-red hover:text-white hover:bg-gh-red rounded transition-colors flex items-center justify-center"
             title="Cancel selection"
             aria-label="Cancel selection"
             onclick={() => (bulkSelectedSessions = new Map())}
@@ -343,7 +343,7 @@
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
+                stroke-width="3"
                 d="M6 18L18 6M6 6l12 12"
               ></path>
             </svg>
@@ -358,7 +358,7 @@
               <path
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                stroke-width="2"
+                stroke-width="3"
                 d="M5 13l4 4L19 7"
               ></path>
             </svg>
