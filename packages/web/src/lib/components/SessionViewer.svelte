@@ -377,6 +377,19 @@
     handleMessageDeleteWithUndo(msg, false)
   }
 
+  // Handle bulk deletion
+  const handleSessionMessagesDelete = (msgs: Message[]) => {
+    for (const msg of msgs) {
+      handleMessageDeleteWithUndo(msg, false)
+    }
+  }
+
+  const handleAgentMessagesDelete = (msgs: Message[]) => {
+    for (const msg of msgs) {
+      handleMessageDeleteWithUndo(msg, true)
+    }
+  }
+
   const openSessionFile = async () => {
     if (!session) return
     const filePath = `~/.claude/projects/${session.projectName}/${session.id}.jsonl`
@@ -570,6 +583,7 @@
           sessionId={session.id}
           messages={filteredMessages}
           onDeleteMessage={handleSessionMessageDelete}
+          onDeleteMessages={handleSessionMessagesDelete}
           {onEditTitle}
           {onSplitSession}
           enableScroll={false}
@@ -617,6 +631,7 @@
           sessionId={session.id}
           messages={filteredAgentMessages}
           onDeleteMessage={handleAgentMessageDelete}
+          onDeleteMessages={handleAgentMessagesDelete}
           enableScroll={false}
           fullWidth={true}
           {currentMsgId}
