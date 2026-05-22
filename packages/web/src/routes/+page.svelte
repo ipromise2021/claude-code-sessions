@@ -264,6 +264,62 @@
     )
   }
 
+  const handleDeleteMultipleSessions = (
+    sessionsToDelete: { id: string; projectName: string }[]
+  ) => {
+    if (sessionsToDelete.length === 0) return
+
+    showConfirm(
+      'Delete Multiple Sessions',
+      `Are you sure you want to delete ${sessionsToDelete.length} sessions?`,
+      async () => {
+        closeConfirm()
+        try {
+          loading = true
+          await Promise.allSettled(
+            sessionsToDelete.map((s) => api.deleteSession(s.projectName, s.id))
+          )
+
+          // Group by project name to update client-side state efficiently
+          const byProject = new Map<string, Set<string>>()
+          for (const s of sessionsToDelete) {
+            const set = byProject.get(s.projectName) || new Set()
+            set.add(s.id)
+            byProject.set(s.projectName, set)
+          }
+
+          for (const [projectName, deletedIds] of byProject.entries()) {
+            const sessions = projectSessions.get(projectName)
+            if (sessions) {
+              projectSessions.set(
+                projectName,
+                sessions.filter((s) => !deletedIds.has(s.id))
+              )
+            }
+          }
+          projectSessions = new Map(projectSessions)
+
+          // Clear selectedSession if it was deleted
+          if (
+            selectedSession &&
+            sessionsToDelete.some(
+              (s) => s.id === selectedSession!.id && s.projectName === selectedSession!.projectName
+            )
+          ) {
+            selectedSession = null
+            messages = []
+            updateHash()
+          }
+        } catch (e) {
+          error = String(e)
+        } finally {
+          loading = false
+        }
+      },
+      'danger'
+    )
+  }
+
   const handleRenameSession = (e: Event, session: SessionMeta) => {
     e.stopPropagation()
     const sessionData = projectSessionData.get(session.projectName)?.get(session.id)
@@ -676,6 +732,7 @@
     onSelectSession={selectSession}
     onCompressSession={handleCompressSession}
     onDeleteSession={handleDeleteSession}
+    onDeleteMultipleSessions={handleDeleteMultipleSessions}
     onMoveSession={handleMoveSession}
     onRenameSession={handleRenameSession}
     onResumeSession={handleResumeSession}

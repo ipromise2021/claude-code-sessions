@@ -32,6 +32,7 @@
     onSelectSession: (session: SessionMeta) => void
     onCompressSession?: (e: Event, session: SessionMeta) => void
     onDeleteSession: (e: Event, session: SessionMeta) => void
+    onDeleteMultipleSessions?: (sessions: { id: string; projectName: string }[]) => void
     onMoveSession?: (session: SessionMeta, targetProject: string) => void
     onRenameSession: (e: Event, session: SessionMeta) => void
     onResumeSession?: (e: Event, session: SessionMeta) => void
@@ -53,12 +54,37 @@
     onSelectSession,
     onCompressSession,
     onDeleteSession,
+    onDeleteMultipleSessions,
     onMoveSession,
     onRenameSession,
     onResumeSession,
     onSortChange,
     onTitleModeChange,
   }: Props = $props()
+
+  // Bulk selection state (id -> projectName)
+  let bulkSelectedSessions = $state<Map<string, string>>(new Map())
+
+  const toggleBulkSelection = (session: SessionMeta, selected: boolean) => {
+    const next = new Map(bulkSelectedSessions)
+    if (selected) {
+      next.set(session.id, session.projectName)
+    } else {
+      next.delete(session.id)
+    }
+    bulkSelectedSessions = next
+  }
+
+  const handleDeleteSelected = () => {
+    if (!onDeleteMultipleSessions || bulkSelectedSessions.size === 0) return
+    const sessions = Array.from(bulkSelectedSessions.entries()).map(([id, projectName]) => ({
+      id,
+      projectName,
+    }))
+    onDeleteMultipleSessions(sessions)
+    // Clear selection after deletion starts
+    bulkSelectedSessions = new Map()
+  }
 
   // Sort field labels for display
   const sortFieldLabels: Record<SessionSortField, string> = {
@@ -256,9 +282,19 @@
 
 <aside class="bg-gh-bg-secondary border border-gh-border rounded-lg overflow-hidden flex flex-col">
   <div class="p-4 border-b border-gh-border bg-gh-bg">
-    <h2 class="text-base font-semibold mb-2">
-      Projects ({sortedProjects.length})
-    </h2>
+    <div class="flex justify-between items-center mb-2">
+      <h2 class="text-base font-semibold">
+        Projects ({sortedProjects.length})
+      </h2>
+      {#if bulkSelectedSessions.size > 0}
+        <button
+          class="px-2 py-1 text-xs bg-gh-red/10 text-gh-red hover:bg-gh-red/20 rounded transition-colors flex items-center gap-1"
+          onclick={handleDeleteSelected}
+        >
+          <span>🗑️</span> Delete ({bulkSelectedSessions.size})
+        </button>
+      {/if}
+    </div>
     <!-- Sort Options -->
     <div class="flex items-center gap-2 text-sm flex-nowrap">
       <span class="text-gh-text-secondary mr-1">Session Sort:</span>
@@ -399,16 +435,22 @@
                 >
                   <!-- Session Row -->
                   <div class="flex items-center">
+                    <input
+                      type="checkbox"
+                      class="ml-3 mr-1 mt-0.5 flex-shrink-0 rounded border-gh-border bg-gh-bg cursor-pointer z-10 relative"
+                      checked={bulkSelectedSessions.has(session.id)}
+                      onchange={(e) => toggleBulkSelection(session, e.currentTarget.checked)}
+                    />
                     {#if hasSubItems}
                       <button
-                        class="flex-shrink-0 w-5 h-8 flex items-center justify-center bg-transparent border-none cursor-pointer text-gh-text-secondary text-xs ml-1 z-10 relative"
+                        class="flex-shrink-0 w-5 h-8 flex items-center justify-center bg-transparent border-none cursor-pointer text-gh-text-secondary text-xs z-10 relative"
                         onclick={(e) => toggleSessionExpand(e, session.id)}
                         title={isExpanded ? 'Collapse' : 'Expand'}
                       >
                         {isExpanded ? '▼' : '▶'}
                       </button>
                     {:else}
-                      <span class="w-5 ml-1"></span>
+                      <span class="w-5"></span>
                     {/if}
                     <FloatingTooltip
                       content={getCachedTooltip(session)}
