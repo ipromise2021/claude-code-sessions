@@ -334,7 +334,7 @@
             >{bulkSelectedSessions.size} selected</span
           >
           <button
-            class="p-1 text-xs text-gh-red hover:text-white hover:bg-gh-red rounded transition-colors flex items-center justify-center"
+            class="p-1 text-xs text-yellow-500 hover:text-white hover:bg-yellow-500 rounded transition-colors flex items-center justify-center"
             title="Cancel selection"
             aria-label="Cancel selection"
             onclick={() => (bulkSelectedSessions = new Map())}
