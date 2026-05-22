@@ -21,9 +21,6 @@
     sessionId: string
     isFirst?: boolean
     isActive?: boolean
-    selectable?: boolean
-    selected?: boolean
-    onToggleSelect?: (msg: Message, selected: boolean) => void
     onDelete: (msg: Message) => void
     onEditTitle?: (msg: Message) => void
     onSplit?: (msg: Message) => void
@@ -34,9 +31,6 @@
     sessionId,
     isFirst = false,
     isActive = false,
-    selectable = false,
-    selected = false,
-    onToggleSelect,
     onDelete,
     onEditTitle,
     onSplit,
@@ -188,18 +182,6 @@
   })
 </script>
 
-{#snippet checkbox()}
-  {#if selectable}
-    <input
-      type="checkbox"
-      class="mr-2 rounded border-gh-border bg-gh-bg cursor-pointer"
-      checked={selected}
-      onchange={(e) => onToggleSelect?.(msg, e.currentTarget.checked)}
-      onclick={(e) => e.stopPropagation()}
-    />
-  {/if}
-{/snippet}
-
 {#snippet splitButton()}
   {#if onSplit && !isFirst && msg.uuid}
     <TooltipButton
@@ -233,8 +215,7 @@
       : ''}"
   >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary/60">
-      <span class="flex items-center">
-        {@render checkbox()}
+      <span>
         🔄 {progressData.hookName ?? progressData.type}
       </span>
       <div class="flex items-center gap-2">
@@ -252,8 +233,7 @@
       : ''}"
   >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary">
-      <span class="text-gh-text-secondary/70 flex items-center">
-        {@render checkbox()}
+      <span class="text-gh-text-secondary/70">
         ⏱️ {turnDurationData.durationFormatted}
       </span>
       <div class="flex items-center gap-2">
@@ -271,8 +251,7 @@
       : ''}"
   >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary">
-      <span class="font-semibold text-emerald-400 flex items-center">
-        {@render checkbox()}
+      <span class="font-semibold text-emerald-400">
         🪝 Hook ({stopHookData.hookCount})
       </span>
       <div class="flex items-center gap-2">
@@ -306,8 +285,7 @@
     title="messageId: {messageId}"
   >
     <div class="flex justify-between mb-2 text-xs text-gh-text-secondary">
-      <span class="uppercase font-semibold text-amber-400 flex items-center">
-        {@render checkbox()}
+      <span class="uppercase font-semibold text-amber-400">
         📁 File Backups ({snapshotData.files.length})
       </span>
       <div class="flex items-center gap-2">
@@ -344,8 +322,7 @@
       : ''}"
   >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary">
-      <span class="flex items-center">
-        {@render checkbox()}
+      <span>
         <span class="font-semibold text-gh-accent">{commandData.name || 'Command'}</span>
         {#if commandData.args}
           <span class="text-gh-text-secondary">{commandData.args}</span>
@@ -367,9 +344,7 @@
       : ''}"
   >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary">
-      <span class="font-semibold text-cyan-400 flex items-center"
-        >{@render checkbox()}⚡ {commandData.name || 'Command'}</span
-      >
+      <span class="font-semibold text-cyan-400">⚡ {commandData.name || 'Command'}</span>
       <div class="flex items-center gap-2">
         <span>{formatDate(msg.timestamp)}</span>
         {@render splitButton()}
@@ -389,9 +364,7 @@
       : ''}"
   >
     <div class="flex justify-between items-center text-xs text-gh-text-secondary">
-      <span class="font-semibold text-violet-400 flex items-center"
-        >{@render checkbox()}🔧 {toolUseData.name}</span
-      >
+      <span class="font-semibold text-violet-400">🔧 {toolUseData.name}</span>
       <div class="flex items-center gap-2">
         <span>{formatDate(msg.timestamp)}</span>
         {@render splitButton()}
@@ -456,9 +429,7 @@
       : ''}{isActive ? ' ring-2 ring-orange-400' : ''}"
   >
     <div class="flex justify-between text-xs text-gh-text-secondary">
-      <span class="uppercase font-semibold flex items-center"
-        >{@render checkbox()}{isToolResult ? 'OUT' : msg.type}</span
-      >
+      <span class="uppercase font-semibold">{isToolResult ? 'OUT' : msg.type}</span>
       <div class="flex items-center gap-2">
         <span class="group-hover:hidden">{formatDate(msg.timestamp)}</span>
         <span class="hidden group-hover:inline font-mono text-gh-text-secondary/70">
