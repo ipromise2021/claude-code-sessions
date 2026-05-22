@@ -329,12 +329,41 @@
         Projects ({sortedProjects.length})
       </h2>
       {#if bulkSelectedSessions.size > 0}
-        <button
-          class="px-2 py-1 text-xs bg-gh-red/10 text-gh-red hover:bg-gh-red/20 rounded transition-colors flex items-center gap-1"
-          onclick={handleDeleteSelected}
-        >
-          <span>🗑️</span> Delete ({bulkSelectedSessions.size})
-        </button>
+        <div class="flex items-center gap-1 bg-gh-border-subtle/30 px-2 py-1 rounded-md">
+          <span class="text-xs text-gh-text-secondary mr-1"
+            >{bulkSelectedSessions.size} selected</span
+          >
+          <button
+            class="p-1 text-xs text-gh-text-secondary hover:text-gh-text hover:bg-gh-border-subtle rounded transition-colors flex items-center justify-center"
+            title="Cancel selection"
+            aria-label="Cancel selection"
+            onclick={() => (bulkSelectedSessions = new Map())}
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              ></path>
+            </svg>
+          </button>
+          <button
+            class="p-1 text-xs text-gh-red hover:text-white hover:bg-gh-red rounded transition-colors flex items-center justify-center"
+            title="Delete selected sessions"
+            aria-label="Delete selected sessions"
+            onclick={handleDeleteSelected}
+          >
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M5 13l4 4L19 7"
+              ></path>
+            </svg>
+          </button>
+        </div>
       {/if}
     </div>
     <!-- Sort Options -->
