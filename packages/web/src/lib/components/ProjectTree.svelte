@@ -64,6 +64,7 @@
 
   // Bulk selection state (id -> projectName)
   let bulkSelectedSessions = $state<Map<string, string>>(new Map())
+  let lastClickedSession = $state<{ id: string; projectName: string } | null>(null)
 
   const toggleBulkSelection = (session: SessionMeta, selected: boolean) => {
     const next = new Map(bulkSelectedSessions)
@@ -73,6 +74,48 @@
       next.delete(session.id)
     }
     bulkSelectedSessions = next
+  }
+
+  const handleSessionClick = (e: MouseEvent, session: SessionMeta) => {
+    const isMultiSelect = e.metaKey || e.ctrlKey
+    const isRangeSelect = e.shiftKey
+
+    if (isMultiSelect) {
+      e.preventDefault()
+      const currentlySelected = bulkSelectedSessions.has(session.id)
+      toggleBulkSelection(session, !currentlySelected)
+      lastClickedSession = { id: session.id, projectName: session.projectName }
+      return
+    }
+
+    if (
+      isRangeSelect &&
+      lastClickedSession &&
+      lastClickedSession.projectName === session.projectName
+    ) {
+      e.preventDefault()
+      const sessions = projectSessions.get(session.projectName) ?? []
+      const startIndex = sessions.findIndex((s) => s.id === lastClickedSession!.id)
+      const endIndex = sessions.findIndex((s) => s.id === session.id)
+
+      if (startIndex !== -1 && endIndex !== -1) {
+        const minIdx = Math.min(startIndex, endIndex)
+        const maxIdx = Math.max(startIndex, endIndex)
+        const next = new Map(bulkSelectedSessions)
+        for (let i = minIdx; i <= maxIdx; i++) {
+          next.set(sessions[i].id, sessions[i].projectName)
+        }
+        bulkSelectedSessions = next
+      }
+      return
+    }
+
+    // Normal click without modifiers
+    if (bulkSelectedSessions.size > 0) {
+      bulkSelectedSessions = new Map()
+    }
+    lastClickedSession = { id: session.id, projectName: session.projectName }
+    onSelectSession(session)
   }
 
   const handleDeleteSelected = () => {
@@ -426,7 +469,7 @@
                   },
                 ]}
                 <li
-                  class="relative border-t border-gh-border-subtle group {isSelected
+                  class="relative border-t border-gh-border-subtle group select-none {isSelected
                     ? 'bg-gh-accent/20 border-l-3 border-l-gh-accent'
                     : ''} {bulkSelectedSessions.has(session.id) ? 'bg-red-500/10' : ''} {isDragging
                     ? 'opacity-50'
@@ -437,27 +480,16 @@
                 >
                   <!-- Session Row -->
                   <div class="flex items-center">
-                    <label
-                      class="flex items-center justify-center cursor-pointer w-8 h-8 ml-1 z-10 relative"
-                      aria-label="Select session for bulk deletion"
-                    >
-                      <input
-                        type="checkbox"
-                        class="rounded border-gh-border bg-gh-bg cursor-pointer"
-                        checked={bulkSelectedSessions.has(session.id)}
-                        onchange={(e) => toggleBulkSelection(session, e.currentTarget.checked)}
-                      />
-                    </label>
                     {#if hasSubItems}
                       <button
-                        class="flex-shrink-0 w-5 h-8 flex items-center justify-center bg-transparent border-none cursor-pointer text-gh-text-secondary text-xs z-10 relative"
+                        class="flex-shrink-0 w-5 h-8 flex items-center justify-center bg-transparent border-none cursor-pointer text-gh-text-secondary text-xs ml-1 z-10 relative"
                         onclick={(e) => toggleSessionExpand(e, session.id)}
                         title={isExpanded ? 'Collapse' : 'Expand'}
                       >
                         {isExpanded ? '▼' : '▶'}
                       </button>
                     {:else}
-                      <span class="w-5"></span>
+                      <span class="w-5 ml-1"></span>
                     {/if}
                     <FloatingTooltip
                       content={getCachedTooltip(session)}
@@ -465,7 +497,7 @@
                     >
                       <button
                         class="w-full py-2 pr-2 bg-transparent border-none text-gh-text cursor-pointer text-left flex items-center gap-2 text-sm"
-                        onclick={() => onSelectSession(session)}
+                        onclick={(e) => handleSessionClick(e, session)}
                       >
                         <span
                           class="flex-1 min-w-0 overflow-hidden text-ellipsis whitespace-nowrap {isSummaryFallback
