@@ -59,6 +59,12 @@
     padding: 1em;
     overflow-x: auto;
     margin: 0.75em 0;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+
+  pre:hover {
+    scrollbar-color: var(--color-gh-text-secondary) transparent;
   }
 
   pre code {

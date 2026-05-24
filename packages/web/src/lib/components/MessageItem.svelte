@@ -150,6 +150,8 @@
   // Get message ID (uuid or messageId for file-history-snapshot)
   const messageId = $derived(msg.uuid || (msg as unknown as { messageId?: string }).messageId || '')
 
+  let showRaw = $state(false)
+
   // Check if message has displayable content (excluding thinking blocks)
   const hasContent = $derived.by(() => {
     // Queue operations have no displayable content but are valid
@@ -444,10 +446,26 @@
             ✏️
           </TooltipButton>
         {/if}
+        <TooltipButton
+          class="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gh-border text-xs"
+          onclick={() => (showRaw = !showRaw)}
+          title="View raw JSON"
+        >
+          {showRaw ? '🙈' : '📜'}
+        </TooltipButton>
         {@render splitButton()}
         {@render deleteButton()}
       </div>
     </div>
+    {#if showRaw}
+      <div class="mt-2 text-xs">
+        <ExpandableContent
+          content={JSON.stringify(msg, null, 2)}
+          lang="json"
+          maxLines={50}
+        />
+      </div>
+    {/if}
     {#if thinkingBlocks.length > 0}
       <div class="message-content text-sm">
         {#each thinkingBlocks as block, i}

@@ -9,6 +9,13 @@
 
   let expanded = $state(false)
   let isHovering = $state(false)
+  let copied = $state(false)
+
+  const copyToClipboard = async () => {
+    await navigator.clipboard.writeText(content)
+    copied = true
+    setTimeout(() => (copied = false), 2000)
+  }
 
   const lines = $derived(content.split('\n'))
   const needsExpand = $derived(lines.length > maxLines)
@@ -17,20 +24,28 @@
   )
 </script>
 
-{#if needsExpand}
-  <div
-    class="relative"
-    onmouseenter={() => (isHovering = true)}
-    onmouseleave={() => (isHovering = false)}
+<div
+  class="relative group"
+  onmouseenter={() => (isHovering = true)}
+  onmouseleave={() => (isHovering = false)}
+>
+  <button
+    class="absolute top-1 right-1 px-2 py-0.5 text-xs bg-gh-border hover:bg-gh-border-muted rounded transition-opacity opacity-0 group-hover:opacity-100 cursor-pointer border-none text-gh-text-secondary"
+    onclick={copyToClipboard}
+    title="Copy to clipboard"
   >
+    {copied ? 'Copied' : 'Copy'}
+  </button>
+
+  {#if needsExpand}
     {#if lang}
       <pre
-        class="whitespace-pre-wrap font-mono text-xs text-gh-text-secondary overflow-x-auto"><code
+        class="{lang === 'json' ? 'whitespace-pre' : 'whitespace-pre-wrap'} font-mono text-xs text-gh-text-secondary overflow-x-auto {lang === 'json' ? '' : 'max-h-96 overflow-y-auto'}"><code
           class="language-{lang}">{displayContent}</code
         ></pre>
     {:else}
       <pre
-        class="whitespace-pre-wrap font-mono text-xs text-gh-text-secondary overflow-x-auto">{displayContent}</pre>
+        class="whitespace-pre-wrap font-mono text-xs text-gh-text-secondary overflow-x-auto max-h-96 overflow-y-auto">{displayContent}</pre>
     {/if}
     {#if !expanded}
       <div
@@ -52,12 +67,13 @@
         Collapse
       </button>
     {/if}
-  </div>
-{:else if lang}
-  <pre class="whitespace-pre-wrap font-mono text-xs text-gh-text-secondary overflow-x-auto"><code
-      class="language-{lang}">{content}</code
-    ></pre>
-{:else}
-  <pre
-    class="whitespace-pre-wrap font-mono text-xs text-gh-text-secondary overflow-x-auto">{content}</pre>
-{/if}
+  {:else if lang}
+    <pre
+      class="{lang === 'json' ? 'whitespace-pre' : 'whitespace-pre-wrap'} font-mono text-xs text-gh-text-secondary overflow-x-auto {lang === 'json' ? '' : 'max-h-96 overflow-y-auto'}"><code
+        class="language-{lang}">{content}</code
+      ></pre>
+  {:else}
+    <pre
+      class="whitespace-pre-wrap font-mono text-xs text-gh-text-secondary overflow-x-auto max-h-96 overflow-y-auto">{content}</pre>
+  {/if}
+</div>
